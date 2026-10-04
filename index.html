@@ -1,0 +1,856 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>Coop tools</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Phosphor Icons for Modern Aesthetics -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f8fafc;
+        }
+
+        /* Hide elements during print to only show the schedule */
+        @media print {
+            body { background-color: #ffffff; }
+            .no-print { display: none !important; }
+            .print-only { display: block !important; }
+            .print-full-width { width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; box-shadow: none !important; }
+            table { border-collapse: collapse; width: 100%; }
+            th, td { border: 1px solid #cbd5e1 !important; padding: 8px !important; font-size: 11px !important; color: #000 !important; }
+            th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; }
+            .page-break-inside-avoid { page-break-inside: avoid; }
+            
+            /* Add header to print view */
+            #printHeader {
+                display: block;
+                text-align: center;
+                margin-bottom: 20px;
+            }
+        }
+        
+        .print-only { display: none; }
+    </style>
+</head>
+<body class="text-slate-800 antialiased min-h-screen flex flex-col">
+
+    <!-- Top Bar & Tabs -->
+    <nav class="no-print sticky top-0 z-40 w-full flex flex-col">
+        
+        <!-- Main Navbar -->
+        <div class="backdrop-blur-md bg-blue-600/95 border-b border-blue-700 shadow-sm">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex justify-between h-16 items-center">
+                    <div class="flex items-center gap-1.5 sm:gap-2 text-white">
+                        <i class="ph ph-squares-four text-xl sm:text-2xl"></i>
+                        <span class="font-bold text-base sm:text-lg tracking-tight">Coop tools</span>
+                    </div>
+                    
+                    <!-- Developer Button -->
+                    <button onclick="toggleModal('developerModal')" class="flex items-center justify-center gap-0 sm:gap-2 bg-blue-500 hover:bg-blue-400 text-white w-9 h-9 sm:w-auto sm:h-auto sm:px-4 sm:py-2 rounded-full font-medium text-sm transition-all shadow-sm border border-blue-400/50">
+                        <i class="ph ph-code text-lg"></i>
+                        <span class="hidden sm:inline">Developer Info</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- App Tabs -->
+        <div class="bg-white border-b border-slate-200 shadow-sm overflow-x-auto scrollbar-hide no-print">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex space-x-2 sm:space-x-8">
+                <!-- Tab 1: Payment Schedule -->
+                <button id="btnTab1" onclick="switchTab(1)" class="border-b-2 border-blue-600 text-blue-600 font-bold py-3.5 px-2 text-sm whitespace-nowrap flex items-center gap-2 mt-1 shrink-0">
+                    <i class="ph ph-calendar-check text-lg"></i>
+                    Payment Schedule
+                </button>
+                
+                <!-- Tab 2: Missed Interest -->
+                <button id="btnTab2" onclick="switchTab(2)" class="border-b-2 border-transparent hover:border-slate-300 text-slate-500 py-3.5 px-2 text-sm whitespace-nowrap min-w-[120px] transition-colors cursor-pointer bg-slate-50/50 hover:bg-slate-50 rounded-t-lg mt-1 flex items-center gap-2 shrink-0">
+                    <i class="ph ph-calculator text-lg"></i>
+                    Missed Interest
+                </button>
+                
+                <!-- Tab 3: Blank Placeholder -->
+                <button class="border-b-2 border-transparent hover:border-slate-300 text-slate-500 py-3.5 px-2 text-sm whitespace-nowrap min-w-[120px] transition-colors cursor-pointer bg-slate-50/50 hover:bg-slate-50 rounded-t-lg mt-1 shrink-0"></button>
+                
+                <!-- Tab 4: Blank Placeholder -->
+                <button class="border-b-2 border-transparent hover:border-slate-300 text-slate-500 py-3.5 px-2 text-sm whitespace-nowrap min-w-[120px] transition-colors cursor-pointer bg-slate-50/50 hover:bg-slate-50 rounded-t-lg mt-1 shrink-0"></button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Developer Modal -->
+    <div id="developerModal" class="no-print hidden fixed inset-0 z-50 overflow-y-auto" aria-labelledby="modal-title" role="dialog" aria-modal="true">
+        <!-- Backdrop -->
+        <div class="flex items-end justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm transition-opacity" aria-hidden="true" onclick="toggleModal('developerModal')"></div>
+
+            <span class="hidden sm:inline-block sm:align-middle sm:h-screen" aria-hidden="true">&#8203;</span>
+
+            <!-- Modal Panel -->
+            <div class="inline-block align-bottom bg-white rounded-2xl text-left overflow-hidden shadow-2xl transform transition-all sm:my-8 sm:align-middle sm:max-w-md w-full border border-slate-100">
+                <div class="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4 relative">
+                    <!-- Close button -->
+                    <button onclick="toggleModal('developerModal')" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors p-1 rounded-full hover:bg-slate-100">
+                        <i class="ph ph-x text-xl"></i>
+                    </button>
+
+                    <div class="sm:flex sm:items-start flex-col items-center text-center">
+                        <div class="mx-auto flex-shrink-0 flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 mb-4 sm:mb-5 shadow-inner">
+                            <i class="ph ph-user-circle-gear text-3xl text-blue-600"></i>
+                        </div>
+                        <div class="mt-3 sm:mt-0 w-full">
+                            <h3 class="text-xl leading-6 font-bold text-slate-900 mb-1" id="modal-title">
+                                Developer Profile
+                            </h3>
+                            <p class="text-sm text-slate-500 mb-6">Designed and Engineered By</p>
+                            
+                            <div class="space-y-4 text-left bg-slate-50 p-5 rounded-xl border border-slate-100">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm border border-slate-200">
+                                        <i class="ph ph-user text-blue-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Full Name</p>
+                                        <p class="text-sm font-bold text-slate-800">WARREN CHRISTOPHER A. QUIRUBEN</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm border border-slate-200">
+                                        <i class="ph ph-graduation-cap text-blue-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Education</p>
+                                        <p class="text-sm font-bold text-slate-800">BSIT AMA COLLEGE</p>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-full bg-white flex items-center justify-center shadow-sm border border-slate-200">
+                                        <i class="ph ph-briefcase text-indigo-600"></i>
+                                    </div>
+                                    <div>
+                                        <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Role / Affiliation</p>
+                                        <p class="text-sm font-bold text-slate-800">AO FATIMA MPC</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- About & Disclaimer Section -->
+                            <div class="mt-5 text-left bg-indigo-50/50 p-4 rounded-xl border border-indigo-100 shadow-sm">
+                                <h4 class="text-xs font-bold text-indigo-800 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                    <i class="ph ph-info text-indigo-600 text-sm"></i> About This Tool
+                                </h4>
+                                <p class="text-xs text-slate-600 leading-relaxed mb-2.5">
+                                    This application was thoughtfully coded to help streamline and automate daily loan computations. It was developed by Warren Christopher A. Quiruben, drawing from his firsthand experience as an Account Officer for <strong>Fatima Multi Purpose Cooperative</strong>.
+                                </p>
+                                <p class="text-[10px] text-slate-500 leading-relaxed border-t border-indigo-100 pt-2">
+                                    <strong>Disclaimer:</strong> This is an independent support utility. All final computations, official schedules, and approvals are subject to the official system and policies of Fatima Multi Purpose Cooperative. The cooperative reserves all rights to its official financial data and operating guidelines.
+                                </p>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-slate-50 px-4 py-4 sm:px-6 flex justify-center border-t border-slate-100">
+                    <button type="button" onclick="toggleModal('developerModal')" class="w-full inline-flex justify-center rounded-xl border border-transparent shadow-sm px-4 py-2.5 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm transition-colors">
+                        Awesome, thanks!
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content App -->
+    <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full print-full-width">
+        
+        <!-- TAB 1: Payment Schedule -->
+        <div id="tab1Content" class="flex flex-col gap-8">
+            
+            <!-- Top Section: Input Form -->
+            <div class="w-full max-w-5xl mx-auto space-y-6 no-print">
+                <div class="bg-white p-6 rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-slate-100">
+                    <div class="mb-6 flex items-center gap-3 border-b border-slate-100 pb-4">
+                        <div class="p-2 bg-blue-50 rounded-lg text-blue-600">
+                            <i class="ph ph-sliders text-xl"></i>
+                        </div>
+                        <h2 class="text-xl font-bold text-slate-800">Loan Details</h2>
+                    </div>
+
+                    <form id="calculatorForm" class="space-y-6">
+                        
+                        <!-- Section: Text Boxes -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <!-- COOP Name -->
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">COOP Name</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="ph ph-buildings text-slate-400"></i>
+                                    </div>
+                                    <input type="text" id="coopName" value="FATIMA MULTIPURPOSE COOPERATIVE (CARIGARA BRANCH )" class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none text-sm font-medium text-slate-700 bg-slate-50 focus:bg-white transition-all">
+                                </div>
+                            </div>
+                            
+                            <!-- Client Name -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Client Name</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="ph ph-user text-slate-400"></i>
+                                    </div>
+                                    <input type="text" id="clientName" placeholder="Juan Dela Cruz" required class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none text-sm font-medium text-slate-700 bg-slate-50 focus:bg-white transition-all">
+                                </div>
+                            </div>
+                            
+                            <!-- AO Name -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Account Officer (AO) Name</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="ph ph-identification-badge text-slate-400"></i>
+                                    </div>
+                                    <input type="text" id="aoName" placeholder="AO Full Name" required class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none text-sm font-medium text-slate-700 bg-slate-50 focus:bg-white transition-all">
+                                </div>
+                            </div>
+
+                            <!-- Principal Amount -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Loan Amount (₱)</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span class="text-slate-400 font-semibold">₱</span>
+                                    </div>
+                                    <input type="number" id="principalAmount" placeholder="10000" min="1" required class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none text-sm font-bold text-slate-800 bg-slate-50 focus:bg-white transition-all">
+                                </div>
+                            </div>
+                            
+                            <!-- Starting Date -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Starting Date</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="ph ph-calendar-blank text-slate-400"></i>
+                                    </div>
+                                    <input type="date" id="startDate" required class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none text-sm font-medium text-slate-700 bg-slate-50 focus:bg-white transition-all">
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="border-slate-100 my-4">
+
+                        <!-- Section: Dropdowns -->
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                            
+                            <!-- Drop Box 1: Term -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Loan Term</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="ph ph-hourglass-high text-slate-400"></i>
+                                    </div>
+                                    <select id="term" class="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 appearance-none outline-none text-sm font-medium text-slate-700 bg-slate-50 focus:bg-white transition-all cursor-pointer">
+                                        <option value="6">6 Months</option>
+                                        <option value="12">1 Year (12 Months)</option>
+                                        <option value="24">2 Years</option>
+                                        <option value="36">3 Years</option>
+                                        <option value="48">4 Years</option>
+                                        <option value="60">5 Years</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                        <i class="ph ph-caret-down text-slate-400"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Drop Box 2: Interest Rate & Type -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Interest Rate (Monthly Basis)</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="ph ph-percent text-slate-400"></i>
+                                    </div>
+                                    <select id="interestRate" class="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 appearance-none outline-none text-sm font-medium text-slate-700 bg-slate-50 focus:bg-white transition-all cursor-pointer">
+                                        <option value="2_straight">2% Straight</option>
+                                        <option value="2.5_straight">2.5% Straight</option>
+                                        <option value="3_straight">3% Straight</option>
+                                        <option value="2_diminishing">2% Diminishing</option>
+                                        <option value="3_diminishing">3% Diminishing</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                        <i class="ph ph-caret-down text-slate-400"></i>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Drop Box 3: Payment Frequency -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Payment Frequency</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="ph ph-calendar-check text-slate-400"></i>
+                                    </div>
+                                    <select id="paymentFrequency" class="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 appearance-none outline-none text-sm font-medium text-slate-700 bg-slate-50 focus:bg-white transition-all cursor-pointer">
+                                        <option value="weekly">Weekly</option>
+                                        <option value="quincenas">Quincenas (Semi-monthly)</option>
+                                        <option value="monthly">Monthly</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                        <i class="ph ph-caret-down text-slate-400"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Round Up Toggle -->
+                        <div class="mt-4 flex items-center justify-between bg-slate-50 p-4 rounded-xl border border-slate-100 shadow-sm">
+                            <div class="flex items-center gap-3">
+                                <div class="p-2 bg-blue-100 rounded-lg text-blue-600">
+                                    <i class="ph ph-arrow-circle-up text-xl"></i>
+                                </div>
+                                <div>
+                                    <p class="text-sm font-bold text-slate-800">Round Up Payment (₱10)</p>
+                                    <p class="text-xs text-slate-500">Rounds the total payment to the nearest 10 and adjusts interest.</p>
+                                </div>
+                            </div>
+                            <label class="relative inline-flex items-center cursor-pointer">
+                                <input type="checkbox" id="useRoundUp" class="sr-only peer" checked>
+                                <div class="w-11 h-6 bg-slate-300 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                            </label>
+                        </div>
+
+                        <!-- Compute Button -->
+                        <button type="submit" class="w-full bg-slate-900 hover:bg-blue-600 text-white font-semibold py-3.5 rounded-xl shadow-lg hover:shadow-blue-500/30 transition-all duration-300 flex justify-center items-center gap-2 mt-6">
+                            <i class="ph ph-lightning text-lg"></i>
+                            Generate Schedule
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Bottom Section: Results & Schedule -->
+            <div class="w-full print-full-width">
+                
+                <!-- Print Header (Hidden on Web, shown on print) -->
+                <div id="printHeader" class="print-only mb-6">
+                    <h1 class="text-xl font-bold uppercase" id="printCoopName">COOP NAME</h1>
+                    <h2 class="text-sm font-semibold uppercase">Loan Amortization Schedule</h2>
+                    <div class="text-left mt-6 grid grid-cols-2 gap-4 text-sm">
+                        <p><strong>Client Name:</strong> <span id="printClientName"></span></p>
+                        <p><strong>Account Officer:</strong> <span id="printAoName"></span></p>
+                        <p><strong>Principal Amount:</strong> <span id="printAmount"></span></p>
+                        <p><strong>Terms:</strong> <span id="printTerms"></span></p>
+                    </div>
+                </div>
+
+                <!-- Initial Empty State -->
+                <div id="emptyState" class="h-full min-h-[400px] flex flex-col items-center justify-center text-slate-400 bg-white rounded-2xl border border-slate-200 border-dashed no-print">
+                    <i class="ph ph-receipt text-6xl mb-4 text-slate-300"></i>
+                    <p class="text-lg font-medium text-slate-600">No schedule generated yet.</p>
+                    <p class="text-sm">Fill in the details and click generate.</p>
+                </div>
+
+                <!-- Results Container (Hidden initially) -->
+                <div id="resultContainer" class="hidden flex-col gap-6 print-full-width">
+                    
+                    <!-- Top Actions & Summary -->
+                    <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 no-print bg-white p-5 rounded-2xl shadow-sm border border-slate-100">
+                        <div>
+                            <h3 class="text-lg font-bold text-slate-800">Generated Schedule</h3>
+                            <p class="text-sm text-slate-500" id="summaryText"></p>
+                        </div>
+                        <button onclick="window.print()" class="flex items-center gap-2 bg-blue-50 text-blue-700 hover:bg-blue-100 px-4 py-2 rounded-xl font-semibold transition-colors border border-blue-200">
+                            <i class="ph ph-printer"></i>
+                            Print Table
+                        </button>
+                    </div>
+
+                    <!-- Table Wrapper -->
+                    <div class="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden print-full-width">
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm whitespace-nowrap">
+                                <thead class="bg-slate-50 text-slate-600 font-semibold uppercase text-[10px] sm:text-xs tracking-wider">
+                                    <tr>
+                                        <th class="px-4 py-3">No.</th>
+                                        <th class="px-4 py-3">Date</th>
+                                        <th class="px-4 py-3 bg-blue-50/50 text-blue-700">Payment Amt</th>
+                                        <th class="px-4 py-3">Principal</th>
+                                        <th class="px-4 py-3">Interest</th>
+                                        <th class="px-4 py-3">CBU</th>
+                                        <th class="px-4 py-3">Savings</th>
+                                        <th class="px-4 py-3">Balance</th>
+                                        <th class="px-4 py-3 min-w-[80px]">Sign</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="scheduleBody" class="divide-y divide-slate-100">
+                                    <!-- Rows will be injected here via JS -->
+                                </tbody>
+                                <tfoot id="scheduleFoot" class="bg-slate-50 font-bold text-slate-800 border-t-2 border-slate-200">
+                                    <!-- Totals will be injected here -->
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- TAB 2: Missed Interest Computation -->
+        <div id="tab2Content" class="hidden flex-col gap-8 no-print">
+            
+            <div class="w-full max-w-5xl mx-auto space-y-6">
+                <div class="bg-white p-6 rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-slate-100">
+                    <div class="mb-6 flex items-center gap-3 border-b border-slate-100 pb-4">
+                        <div class="p-2 bg-blue-50 rounded-lg text-blue-600">
+                            <i class="ph ph-calculator text-xl"></i>
+                        </div>
+                        <h2 class="text-xl font-bold text-slate-800">Missed Interest Computation</h2>
+                    </div>
+
+                    <form id="missedInterestForm" class="space-y-6">
+                        
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                            <!-- COOP Name -->
+                            <div class="md:col-span-2">
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">COOP Name</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="ph ph-buildings text-slate-400"></i>
+                                    </div>
+                                    <input type="text" id="miCoopName" value="FATIMA MULTIPURPOSE COOPERATIVE (CARIGARA BRANCH )" class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none text-sm font-medium text-slate-700 bg-slate-50 focus:bg-white transition-all">
+                                </div>
+                            </div>
+                            
+                            <!-- Client Name -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Client Name</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="ph ph-user text-slate-400"></i>
+                                    </div>
+                                    <input type="text" id="miClientName" placeholder="Juan Dela Cruz" required class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none text-sm font-medium text-slate-700 bg-slate-50 focus:bg-white transition-all">
+                                </div>
+                            </div>
+                            
+                            <!-- AO Name -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Account Officer (AO) Name</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="ph ph-identification-badge text-slate-400"></i>
+                                    </div>
+                                    <input type="text" id="miAoName" placeholder="AO Full Name" required class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none text-sm font-medium text-slate-700 bg-slate-50 focus:bg-white transition-all">
+                                </div>
+                            </div>
+
+                            <!-- Released Amount -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Released Amount (₱)</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span class="text-slate-400 font-semibold">₱</span>
+                                    </div>
+                                    <input type="number" id="miReleasedAmount" placeholder="10000" min="1" required class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none text-sm font-bold text-slate-800 bg-slate-50 focus:bg-white transition-all">
+                                </div>
+                            </div>
+
+                            <!-- Interest Rate -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Interest Rate</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="ph ph-percent text-slate-400"></i>
+                                    </div>
+                                    <select id="miInterestRate" class="w-full pl-9 pr-10 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 appearance-none outline-none text-sm font-medium text-slate-700 bg-slate-50 focus:bg-white transition-all cursor-pointer">
+                                        <option value="2">2% Straight</option>
+                                        <option value="2.5">2.5% Straight</option>
+                                        <option value="3">3% Straight</option>
+                                        <option value="2">2% Diminishing (Base Amount)</option>
+                                        <option value="3">3% Diminishing (Base Amount)</option>
+                                    </select>
+                                    <div class="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                                        <i class="ph ph-caret-down text-slate-400"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <hr class="border-slate-100 my-4">
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+                            <!-- Date Released -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Date Released</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="ph ph-calendar-plus text-slate-400"></i>
+                                    </div>
+                                    <input type="date" id="miDateReleased" required class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none text-sm font-medium text-slate-700 bg-slate-50 focus:bg-white transition-all">
+                                </div>
+                            </div>
+
+                            <!-- This Month -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Current Date</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <i class="ph ph-calendar-check text-slate-400"></i>
+                                    </div>
+                                    <input type="date" id="miCurrentDate" required class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none text-sm font-medium text-slate-700 bg-slate-50 focus:bg-white transition-all">
+                                </div>
+                            </div>
+
+                            <!-- Total Interest Paid -->
+                            <div>
+                                <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wider mb-1.5">Total Interest Paid (₱)</label>
+                                <div class="relative">
+                                    <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                        <span class="text-slate-400 font-semibold">₱</span>
+                                    </div>
+                                    <input type="number" id="miTotalPaid" placeholder="0" min="0" step="0.01" required class="w-full pl-9 pr-3 py-2.5 rounded-xl border border-slate-200 focus:border-blue-500 focus:ring-4 focus:ring-blue-500/20 outline-none text-sm font-bold text-slate-800 bg-slate-50 focus:bg-white transition-all">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Compute Button -->
+                        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 rounded-xl shadow-lg hover:shadow-blue-500/30 transition-all duration-300 flex justify-center items-center gap-2 mt-6">
+                            <i class="ph ph-calculator text-lg"></i>
+                            Calculate Missed Interest
+                        </button>
+                    </form>
+                </div>
+                
+                <!-- Result Card -->
+                <div id="miResultContainer" class="hidden bg-white p-6 rounded-2xl shadow-[0_4px_20px_-4px_rgba(0,0,0,0.05)] border border-slate-100">
+                    <h3 class="text-lg font-bold text-slate-800 mb-4 border-b border-slate-100 pb-3">Computation Result</h3>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-1">Months Elapsed</p>
+                            <p class="text-2xl font-bold text-slate-800" id="miResultMonths">0</p>
+                        </div>
+                        <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                            <p class="text-xs text-slate-500 font-semibold uppercase tracking-wider mb-1">Total Expected Interest</p>
+                            <p class="text-2xl font-bold text-slate-800" id="miResultExpected">₱0.00</p>
+                        </div>
+                        <div class="bg-blue-50 p-4 rounded-xl border border-blue-100 shadow-sm">
+                            <p class="text-xs text-blue-600 font-semibold uppercase tracking-wider mb-1">Missed Interest</p>
+                            <p class="text-3xl font-bold text-blue-700" id="miResultMissed">₱0.00</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- Scripts -->
+    <script>
+        // Set default dates
+        document.getElementById('startDate').valueAsDate = new Date();
+        document.getElementById('miDateReleased').valueAsDate = new Date();
+        document.getElementById('miCurrentDate').valueAsDate = new Date();
+
+        // Currency Formatter
+        const currencyFormatter = new Intl.NumberFormat('en-PH', {
+            style: 'currency',
+            currency: 'PHP',
+            minimumFractionDigits: 2,
+            maximumFractionDigits: 2
+        });
+
+        // Modal toggle logic
+        function toggleModal(modalID) {
+            const modal = document.getElementById(modalID);
+            if (modal.classList.contains('hidden')) {
+                modal.classList.remove('hidden');
+                // Small delay to allow display:block to apply before changing opacity for animation
+                setTimeout(() => {
+                    modal.querySelector('.bg-slate-900\\/60').classList.remove('opacity-0');
+                    modal.querySelector('.transform').classList.remove('scale-95', 'opacity-0');
+                }, 10);
+            } else {
+                modal.querySelector('.bg-slate-900\\/60').classList.add('opacity-0');
+                modal.querySelector('.transform').classList.add('scale-95', 'opacity-0');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 200); // match standard tailwind duration
+            }
+        }
+
+        // Tab Switching Logic
+        function switchTab(tabIndex) {
+            // Hide all tabs
+            document.getElementById('tab1Content').classList.add('hidden');
+            document.getElementById('tab2Content').classList.add('hidden');
+            document.getElementById('tab2Content').classList.remove('flex');
+            
+            // Reset Button Styles
+            const inactiveStyle = "border-b-2 border-transparent hover:border-slate-300 text-slate-500 py-3.5 px-2 text-sm whitespace-nowrap min-w-[120px] transition-colors cursor-pointer bg-slate-50/50 hover:bg-slate-50 rounded-t-lg mt-1 flex items-center gap-2 shrink-0";
+            document.getElementById('btnTab1').className = inactiveStyle;
+            document.getElementById('btnTab2').className = inactiveStyle;
+            
+            // Activate selected tab
+            const activeStyle = "border-b-2 border-blue-600 text-blue-600 font-bold py-3.5 px-2 text-sm whitespace-nowrap flex items-center gap-2 mt-1 shrink-0";
+            
+            if(tabIndex === 1) {
+                document.getElementById('tab1Content').classList.remove('hidden');
+                document.getElementById('tab1Content').classList.add('flex');
+                document.getElementById('btnTab1').className = activeStyle;
+            } else if (tabIndex === 2) {
+                document.getElementById('tab2Content').classList.remove('hidden');
+                document.getElementById('tab2Content').classList.add('flex');
+                document.getElementById('btnTab2').className = activeStyle;
+            }
+        }
+
+        // --- TAB 1: SCHEDULE FORM SUBMIT ---
+        document.getElementById('calculatorForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Get Input Values
+            const coopName = document.getElementById('coopName').value;
+            const clientName = document.getElementById('clientName').value;
+            const aoName = document.getElementById('aoName').value;
+            const principal = parseFloat(document.getElementById('principalAmount').value);
+            const startDateStr = document.getElementById('startDate').value;
+            
+            const termMonths = parseInt(document.getElementById('term').value);
+            const interestConfig = document.getElementById('interestRate').value;
+            const freq = document.getElementById('paymentFrequency').value;
+            const useRoundUp = document.getElementById('useRoundUp').checked;
+
+            if (isNaN(principal) || principal <= 0) return;
+
+            // Parse Interest Settings
+            const rateSplit = interestConfig.split('_');
+            const rateValue = parseFloat(rateSplit[0]); // e.g. 2, 2.5, 3
+            const isStraight = rateSplit[1] === 'straight';
+
+            // Determine Frequency Constraints
+            let totalPeriods = 0;
+            let periodsPerMonth = 0;
+            let cbuAmt = 0;
+            let savingsAmt = 0;
+
+            if (freq === "weekly") {
+                // 26 weeks for 6 months -> implies 52 weeks per year.
+                totalPeriods = (termMonths / 12) * 52;
+                periodsPerMonth = 4; // COOP standard: divide monthly interest exactly by 4 for weekly
+                cbuAmt = 50;
+                savingsAmt = 50;
+            } else if (freq === "quincenas") {
+                totalPeriods = termMonths * 2;
+                periodsPerMonth = 2; // Divide monthly exactly by 2
+                cbuAmt = 100;
+                savingsAmt = 100;
+            } else if (freq === "monthly") {
+                totalPeriods = termMonths;
+                periodsPerMonth = 1;
+                cbuAmt = 200;
+                savingsAmt = 200;
+            }
+
+            // Calculation Core
+            let balance = principal;
+            let schedule = [];
+            
+            let totalInterestPaid = 0;
+            let totalPrincipalPaid = 0;
+            let totalCbuPaid = 0;
+            let totalSavingsPaid = 0;
+
+            // Base Amortization Variables
+            let basePrincipalPerPeriod = Math.ceil(principal / totalPeriods);
+
+            let currentDate = new Date(startDateStr);
+
+            for (let i = 1; i <= totalPeriods; i++) {
+                if (balance <= 0) break;
+
+                // Determine Principal for this period
+                let currentPrincipal = basePrincipalPerPeriod;
+                if (currentPrincipal > balance) {
+                    currentPrincipal = balance;
+                }
+
+                // Determine Raw Interest for this period (Unrounded)
+                let rawInterest = 0;
+                let monthlyInterest = principal * (rateValue / 100);
+                
+                if (isStraight) {
+                    // Divide exactly by 4 for weekly, 2 for quincenas to match Coop math
+                    rawInterest = monthlyInterest / periodsPerMonth;
+                } else {
+                    let periodicRate = (rateValue / 100) / periodsPerMonth;
+                    rawInterest = balance * periodicRate;
+                }
+
+                let totalPayment = 0;
+                let currentInterest = 0;
+
+                if (useRoundUp) {
+                    // Round the Total Payment to nearest 10 and adjust interest to bridge the gap
+                    if (balance > currentPrincipal && i < totalPeriods) {
+                        let rawPayment = currentPrincipal + rawInterest + cbuAmt + savingsAmt;
+                        
+                        // Round up to nearest 10 (e.g. 543 -> 550)
+                        totalPayment = Math.ceil(rawPayment / 10) * 10;
+                        
+                        // Put the rest in interest
+                        currentInterest = totalPayment - currentPrincipal - cbuAmt - savingsAmt;
+                        
+                        // Fallback to prevent negative interest in extreme edge cases
+                        if (currentInterest < 0) {
+                            currentInterest = Math.ceil(rawInterest);
+                            totalPayment = currentPrincipal + currentInterest + cbuAmt + savingsAmt;
+                        }
+                    } else {
+                        // Very last payment just closes out naturally
+                        currentInterest = Math.ceil(rawInterest);
+                        totalPayment = currentPrincipal + currentInterest + cbuAmt + savingsAmt;
+                    }
+                } else {
+                    // Standard exact calculation (rounded up to whole peso)
+                    currentInterest = Math.ceil(rawInterest);
+                    totalPayment = currentPrincipal + currentInterest + cbuAmt + savingsAmt;
+                }
+
+                // Apply to balance
+                balance -= currentPrincipal;
+                if (balance < 0.01) balance = 0; // Floating point safety
+
+                // Accumulate totals
+                totalPrincipalPaid += currentPrincipal;
+                totalInterestPaid += currentInterest;
+                totalCbuPaid += cbuAmt;
+                totalSavingsPaid += savingsAmt;
+
+                // Format Date for table
+                let dateStr = currentDate.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+
+                schedule.push({
+                    period: i,
+                    date: dateStr,
+                    payment: totalPayment,
+                    principal: currentPrincipal,
+                    interest: currentInterest,
+                    cbu: cbuAmt,
+                    savings: savingsAmt,
+                    balance: balance
+                });
+
+                // Advance Date for NEXT period
+                if (freq === "weekly") {
+                    currentDate.setDate(currentDate.getDate() + 7);
+                } else if (freq === "quincenas") {
+                    currentDate.setDate(currentDate.getDate() + 15);
+                } else if (freq === "monthly") {
+                    currentDate.setMonth(currentDate.getMonth() + 1);
+                }
+            }
+
+            // Render Table
+            const tbody = document.getElementById('scheduleBody');
+            tbody.innerHTML = ''; // Clear previous
+
+            schedule.forEach(row => {
+                const tr = document.createElement('tr');
+                tr.className = 'hover:bg-slate-50 transition-colors page-break-inside-avoid text-slate-700';
+                
+                tr.innerHTML = `
+                    <td class="px-4 py-3 font-medium">${row.period}</td>
+                    <td class="px-4 py-3 whitespace-nowrap text-slate-600 font-medium">${row.date}</td>
+                    <td class="px-4 py-3 font-bold text-blue-700 bg-blue-50/20">${currencyFormatter.format(row.payment)}</td>
+                    <td class="px-4 py-3">${currencyFormatter.format(row.principal)}</td>
+                    <td class="px-4 py-3">${currencyFormatter.format(row.interest)}</td>
+                    <td class="px-4 py-3 text-slate-500">${currencyFormatter.format(row.cbu)}</td>
+                    <td class="px-4 py-3 text-slate-500">${currencyFormatter.format(row.savings)}</td>
+                    <td class="px-4 py-3 font-medium text-slate-900">${currencyFormatter.format(row.balance)}</td>
+                    <td class="px-4 py-3 min-w-[80px]"></td> <!-- Blank for Signature -->
+                `;
+                tbody.appendChild(tr);
+            });
+
+            // Render Footer Totals
+            const tfoot = document.getElementById('scheduleFoot');
+            const totalOverallPayment = totalPrincipalPaid + totalInterestPaid + totalCbuPaid + totalSavingsPaid;
+            tfoot.innerHTML = `
+                <tr>
+                    <td colspan="2" class="px-4 py-3 text-right uppercase tracking-wider text-xs">Totals</td>
+                    <td class="px-4 py-3 text-blue-700">${currencyFormatter.format(totalOverallPayment)}</td>
+                    <td class="px-4 py-3">${currencyFormatter.format(totalPrincipalPaid)}</td>
+                    <td class="px-4 py-3">${currencyFormatter.format(totalInterestPaid)}</td>
+                    <td class="px-4 py-3 text-slate-500">${currencyFormatter.format(totalCbuPaid)}</td>
+                    <td class="px-4 py-3 text-slate-500">${currencyFormatter.format(totalSavingsPaid)}</td>
+                    <td colspan="2"></td>
+                </tr>
+            `;
+
+            // Update UI Elements
+            document.getElementById('emptyState').classList.add('hidden');
+            document.getElementById('resultContainer').classList.remove('hidden');
+            document.getElementById('resultContainer').classList.add('flex');
+            
+            // Set Print Headers
+            document.getElementById('printCoopName').innerText = coopName || 'COOP NAME';
+            document.getElementById('printClientName').innerText = clientName;
+            document.getElementById('printAoName').innerText = aoName;
+            document.getElementById('printAmount').innerText = currencyFormatter.format(principal);
+            document.getElementById('printTerms').innerText = `${termMonths} Months, ${rateValue}% ${isStraight ? 'Straight' : 'Diminishing'}, ${freq.charAt(0).toUpperCase() + freq.slice(1)}`;
+
+            // Set Summary Text
+            const interestTypeText = isStraight ? 'Straight' : 'Diminishing';
+            document.getElementById('summaryText').innerText = 
+                `${currencyFormatter.format(principal)} over ${termMonths} months @ ${rateValue}% ${interestTypeText}`;
+        });
+
+        // --- TAB 2: MISSED INTEREST FORM SUBMIT ---
+        document.getElementById('missedInterestForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const releasedAmt = parseFloat(document.getElementById('miReleasedAmount').value);
+            const rate = parseFloat(document.getElementById('miInterestRate').value);
+            const totalPaid = parseFloat(document.getElementById('miTotalPaid').value);
+            
+            const dateReleased = new Date(document.getElementById('miDateReleased').value);
+            const currentDate = new Date(document.getElementById('miCurrentDate').value);
+
+            // Calculate months elapsed
+            let monthsElapsed = (currentDate.getFullYear() - dateReleased.getFullYear()) * 12;
+            monthsElapsed += currentDate.getMonth() - dateReleased.getMonth();
+            
+            // If they select dates in the same month, we usually count it as at least 1 month in arrears
+            if (monthsElapsed <= 0) {
+                monthsElapsed = 1;
+            }
+
+            // Calculate Expected Interest based on the original released amount
+            const expectedInterest = releasedAmt * (rate / 100) * monthsElapsed;
+            
+            // Calculate Missed
+            let missedInterest = expectedInterest - totalPaid;
+            if (missedInterest < 0) missedInterest = 0; // Prevent negative if overpaid
+
+            // Render Results
+            document.getElementById('miResultMonths').innerText = monthsElapsed;
+            document.getElementById('miResultExpected').innerText = currencyFormatter.format(expectedInterest);
+            document.getElementById('miResultMissed').innerText = currencyFormatter.format(missedInterest);
+
+            // Show result block
+            document.getElementById('miResultContainer').classList.remove('hidden');
+        });
+    </script>
+</body>
+</html>
