@@ -363,27 +363,29 @@
 
     <!-- Developer Modal -->
     <div id="developerModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm z-50 hidden opacity-0 transition-opacity duration-300 flex items-center justify-center p-4">
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md transform scale-95 transition-transform duration-300 overflow-hidden relative">
+        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[90vh] overflow-y-auto overflow-x-hidden transform scale-95 transition-transform duration-300 relative">
             <!-- Header bg -->
-            <div class="h-24 bg-gradient-to-r from-blue-600 to-blue-500"></div>
+            <div class="h-24 bg-gradient-to-r from-blue-600 to-blue-500 shrink-0"></div>
             
             <!-- Close Button -->
-            <button onclick="toggleModal('developerModal')" class="absolute top-4 right-4 text-white hover:text-blue-100 bg-black/20 hover:bg-black/40 rounded-full w-8 h-8 flex items-center justify-center transition-colors">
+            <button onclick="toggleModal('developerModal')" class="absolute top-4 right-4 text-white hover:text-blue-100 bg-black/20 hover:bg-black/40 rounded-full w-8 h-8 flex items-center justify-center transition-colors z-10">
                 <i class="fa-solid fa-times"></i>
             </button>
             
-            <div class="px-6 pb-6 relative">
+            <div class="px-6 pb-6 flex flex-col sm:flex-row gap-4 sm:gap-5 relative">
                 <!-- Avatar -->
-                <div class="w-20 h-20 bg-white rounded-full p-1 border-4 border-white shadow-md absolute -top-10 left-6 flex items-center justify-center">
-                    <div class="w-full h-full bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-3xl">
-                        <i class="fa-solid fa-user-tie"></i>
+                <div class="-mt-12 flex justify-center sm:justify-start shrink-0 z-10">
+                    <div class="w-24 h-24 bg-white rounded-full p-1 border-4 border-white shadow-md flex items-center justify-center">
+                        <div class="w-full h-full bg-blue-100 rounded-full flex items-center justify-center text-blue-600 text-4xl">
+                            <i class="fa-solid fa-user-tie"></i>
+                        </div>
                     </div>
                 </div>
                 
-                <div class="mt-14 space-y-4">
-                    <div>
-                        <h3 class="text-xl font-bold text-slate-800">WARREN CHRISTOPHER A. QUIRUBEN</h3>
-                        <p class="text-sm font-medium text-blue-600 flex items-center gap-1.5 mt-1">
+                <div class="mt-2 sm:mt-4 space-y-4 flex-1">
+                    <div class="text-center sm:text-left">
+                        <h3 class="text-xl font-bold text-slate-800 leading-tight">WARREN CHRISTOPHER A. QUIRUBEN</h3>
+                        <p class="text-sm font-medium text-blue-600 flex items-center justify-center sm:justify-start gap-1.5 mt-1.5">
                             <i class="fa-solid fa-building-columns"></i> BSIT, AMA COLLEGE
                         </p>
                     </div>
@@ -675,30 +677,61 @@
                 return; // Nothing to capture
             }
             
-            // Temporarily adjust styles for better image capture
+            const saveBtn = document.getElementById('saveImageBtn');
+            const originalBtnHTML = saveBtn.innerHTML;
+            saveBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
+
+            // Find the overflow container inside the capture area
+            const tableContainer = captureArea.querySelector('.overflow-x-auto');
+            
+            // Temporarily adjust styles for better image capture (avoid cropping)
             const originalBorder = captureArea.style.border;
             const originalShadow = captureArea.style.boxShadow;
+            const originalBg = captureArea.style.backgroundColor;
+            const originalPadding = captureArea.style.padding;
+            const originalWidth = captureArea.style.width;
+            
+            // Save original table container styles/classes
+            let originalTableOverflow = '';
+            let originalTableWidth = '';
+            
+            if (tableContainer) {
+                originalTableOverflow = tableContainer.style.overflow;
+                originalTableWidth = tableContainer.style.width;
+                // Remove horizontal scroll restriction
+                tableContainer.classList.remove('overflow-x-auto');
+                tableContainer.style.overflow = 'visible';
+                tableContainer.style.width = 'max-content';
+            }
             
             captureArea.style.border = 'none';
             captureArea.style.boxShadow = 'none';
             captureArea.style.backgroundColor = '#ffffff';
             captureArea.style.padding = '20px';
+            captureArea.style.width = 'max-content'; // Force wrapper to full table width
             
-            // Change button icon to show loading state
-            const saveBtn = document.getElementById('saveImageBtn');
-            const originalBtnHTML = saveBtn.innerHTML;
-            saveBtn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> Saving...';
-            
+            // Use specific options to ensure full capture on mobile devices
             html2canvas(captureArea, {
                 scale: 2, // High resolution for mobile zooming
                 useCORS: true,
-                backgroundColor: '#ffffff'
+                backgroundColor: '#ffffff',
+                scrollX: 0,
+                scrollY: -window.scrollY,
+                windowWidth: captureArea.scrollWidth // Make virtual window width match the un-cropped table
             }).then(canvas => {
                 // Revert styles
                 captureArea.style.border = originalBorder;
                 captureArea.style.boxShadow = originalShadow;
-                captureArea.style.padding = '';
-                captureArea.style.backgroundColor = '';
+                captureArea.style.padding = originalPadding;
+                captureArea.style.backgroundColor = originalBg;
+                captureArea.style.width = originalWidth;
+                
+                if (tableContainer) {
+                    tableContainer.classList.add('overflow-x-auto');
+                    tableContainer.style.overflow = originalTableOverflow;
+                    tableContainer.style.width = originalTableWidth;
+                }
+                
                 saveBtn.innerHTML = originalBtnHTML;
                 
                 // Create download link
@@ -712,8 +745,16 @@
                 // Revert styles on error
                 captureArea.style.border = originalBorder;
                 captureArea.style.boxShadow = originalShadow;
-                captureArea.style.padding = '';
-                captureArea.style.backgroundColor = '';
+                captureArea.style.padding = originalPadding;
+                captureArea.style.backgroundColor = originalBg;
+                captureArea.style.width = originalWidth;
+                
+                if (tableContainer) {
+                    tableContainer.classList.add('overflow-x-auto');
+                    tableContainer.style.overflow = originalTableOverflow;
+                    tableContainer.style.width = originalTableWidth;
+                }
+                
                 saveBtn.innerHTML = originalBtnHTML;
                 console.error('Error capturing image:', err);
                 showToast('Failed to save image. Try again.');
