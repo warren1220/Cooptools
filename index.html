@@ -226,6 +226,30 @@
                             <p id="outTerms" class="font-bold text-slate-700 text-sm"></p>
                         </div>
                     </div>
+                    
+                    <!-- NEW: Summary Statistics Section -->
+                    <div class="mt-4 grid grid-cols-2 md:grid-cols-5 gap-3 text-center bg-blue-50 p-4 rounded-lg border border-blue-200 shadow-sm">
+                        <div>
+                            <p class="text-[10px] text-blue-500 uppercase font-bold tracking-wider mb-1">Applied Amount</p>
+                            <p id="outAppliedAmount" class="font-bold text-blue-800 text-sm"></p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-blue-500 uppercase font-bold tracking-wider mb-1">Total Interest</p>
+                            <p id="outTotalInterest" class="font-bold text-blue-800 text-sm"></p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-blue-500 uppercase font-bold tracking-wider mb-1">Total CBU</p>
+                            <p id="outTotalCBU" class="font-bold text-blue-800 text-sm"></p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-blue-500 uppercase font-bold tracking-wider mb-1">Total Savings</p>
+                            <p id="outTotalSavings" class="font-bold text-blue-800 text-sm"></p>
+                        </div>
+                        <div>
+                            <p class="text-[10px] text-blue-500 uppercase font-bold tracking-wider mb-1">Total Amount</p>
+                            <p id="outGrandTotal" class="font-bold text-blue-800 text-sm"></p>
+                        </div>
+                    </div>
                 </div>
 
                 <div class="overflow-x-auto print-full-width border-t sm:border-t-0 border-slate-200">
@@ -524,7 +548,12 @@
             const monthlyInterestRate = parseFloat(interestVal.split('-')[0]); // 0.02, 0.025, 0.03
             
             // Total number of payments
-            const totalPayments = termVal * freqVal;
+            let totalPayments = termVal * freqVal;
+            
+            // Adjust for accurate 26-week / 52-week cycles for Weekly frequency
+            if (freqVal === 4) {
+                totalPayments = Math.round((termVal / 12) * 52);
+            }
             
             // CBU and Savings logic based on frequency
             let cbu = 0;
@@ -556,6 +585,11 @@
             let balance = principalRaw;
             let currentDate = new Date(startingDateVal);
             let totalAmountToPay = 0;
+            
+            // Summary accumulators
+            let sumInterest = 0;
+            let sumCbu = 0;
+            let sumSavings = 0;
 
             for (let i = 1; i <= totalPayments; i++) {
                 
@@ -606,6 +640,9 @@
                 if (balance < 0) balance = 0;
                 
                 totalAmountToPay += paymentAmt;
+                sumInterest += rowInterest;
+                sumCbu += cbu;
+                sumSavings += savings;
 
                 // Create Row
                 const tr = document.createElement('tr');
@@ -625,6 +662,13 @@
             }
 
             document.getElementById('outTotalAmount').textContent = formatCurrency(totalAmountToPay);
+            
+            // Populate Summary Statistics
+            document.getElementById('outAppliedAmount').textContent = formatCurrency(principalRaw);
+            document.getElementById('outTotalInterest').textContent = formatCurrency(sumInterest);
+            document.getElementById('outTotalCBU').textContent = formatCurrency(sumCbu);
+            document.getElementById('outTotalSavings').textContent = formatCurrency(sumSavings);
+            document.getElementById('outGrandTotal').textContent = formatCurrency(totalAmountToPay);
             
             // Show result area and secondary buttons
             document.getElementById('scheduleCaptureArea').classList.remove('hidden');
